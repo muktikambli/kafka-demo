@@ -22,12 +22,12 @@ public class MessageConsumer {
     }
 
     public void consume() {
-        System.out.println("🔄 Listening for messages...");
+        System.out.println("Listening for messages...");
         try {
             while (true) {
                 ConsumerRecords<String, String> records = consumer.poll(Duration.ofSeconds(1));
                 for (ConsumerRecord<String, String> record : records) {
-                    System.out.printf("📥 Received message: key=%s value=%s partition=%s offset=%d%n",
+                    System.out.printf("Received message: key=%s value=%s partition=%s offset=%d%n",
                             record.key(), record.value(), record.partition(), record.offset());
                 }
             }

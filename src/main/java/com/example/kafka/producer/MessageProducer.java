@@ -22,7 +22,7 @@ public class MessageProducer {
         ProducerRecord<String, String> record = new ProducerRecord<>(topicName, key, value);
         producer.send(record, (metadata, exception) -> {
             if (exception == null) {
-                System.out.printf("✅ Sent message: topic=%s partition=%s offset=%d%n",
+                System.out.printf("Sent message: topic=%s partition=%s offset=%d%n",
                         metadata.topic(), metadata.partition(), metadata.offset());
             } else {
                 exception.printStackTrace();

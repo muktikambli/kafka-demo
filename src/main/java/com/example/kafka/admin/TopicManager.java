@@ -21,13 +21,13 @@ public class TopicManager {
         try {
             Set<String> existingTopics = adminClient.listTopics().names().get();
             if (existingTopics.contains(topicName)) {
-                System.out.println("⚠️ Topic already exists: " + topicName);
+                System.out.println("Topic already exists: " + topicName);
                 return;
             }
 
             NewTopic newTopic = new NewTopic(topicName, partitions, replicationFactor);
             adminClient.createTopics(Collections.singletonList(newTopic)).all().get();
-            System.out.println("✅ Created topic: " + topicName);
+            System.out.println("Created topic: " + topicName);
         } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }

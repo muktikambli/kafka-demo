@@ -1,32 +1,40 @@
 package com.example.kafka;
 
 import com.example.kafka.admin.TopicManager;
-import com.example.kafka.consumer.MessageConsumer;
-import com.example.kafka.producer.MessageProducer;
+import com.example.kafka.config.ConfigLoader;
+import com.example.kafka.consumer.OrderConsumer;
+import com.example.kafka.consumer.PaymentConsumer;
+import com.example.kafka.consumer.NotificationConsumer;
+import com.example.kafka.producer.OrderProducer;
+import com.example.kafka.model.Order;
 
 public class App {
     public static void main(String[] args) throws InterruptedException {
-        String bootstrapServers = "localhost:9092";
-        String topicName = "test-topic";
 
-        // ✅ Step 1: Create topic programmatically
+        ConfigLoader cfg = new ConfigLoader();
+        String[] topics = cfg.get("topics").split(",");
+        String bootstrapServers = cfg.get("bootstrap.servers");
+
+        // Create topics
         TopicManager topicManager = new TopicManager(bootstrapServers);
-        topicManager.createTopicIfNotExists(topicName, 1, (short) 1);
+        for (String t : topics) {
+            topicManager.createTopicIfNotExists(t.trim(), 1, (short) 1);
+        }
         topicManager.close();
 
-        // ✅ Step 2: Start consumer in a separate thread
-        new Thread(() -> {
-            MessageConsumer consumer = new MessageConsumer(bootstrapServers, topicName, "demo-group");
-            consumer.consume();
-        }).start();
+        // Start consumers
+        new Thread(() -> new OrderConsumer(bootstrapServers, "orders", "order-group").consume()).start();
+        new Thread(() -> new PaymentConsumer(bootstrapServers, "payments", "payment-group").consume()).start();
+        new Thread(() -> new NotificationConsumer(bootstrapServers, "notifications", "notification-group").consume()).start();
 
-        // ✅ Step 3: Start producer
-        MessageProducer producer = new MessageProducer(bootstrapServers, topicName);
-        for (int i = 1; i <= 5; i++) {
-            producer.sendMessage("key-" + i, "Hello Kafka message " + i);
+        // Produce orders only
+        OrderProducer orderProducer = new OrderProducer(bootstrapServers, "orders");
+        for (int i = 1; i <= 3; i++) {
+            orderProducer.sendOrder(new Order("ORD-" + i, i * 1000.0, "NEW"));
             Thread.sleep(1000);
         }
+        orderProducer.close();
 
-        producer.close();
+        System.out.println("Orders produced successfully — rest triggered via Kafka chain!");
     }
 }
